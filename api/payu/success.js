@@ -25,10 +25,13 @@ function tokenFor(txnid, salt, exp) {
 }
 
 async function verifyWithPayU(txnid, key, salt) {
-  const var1 = txnid;
-  const hash = sha512(`${key}|verify_payment|${var1}|${salt}`);
-  const body = new URLSearchParams({key, command:'verify_payment', var1, hash});
-  const r = await fetch('https://info.payu.in/merchant/postservice.php?form=2', {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+  const hash = sha512(`${key}|verify_payment|${txnid}|${salt}`);
+  const body = new URLSearchParams({ key, command: 'verify_payment', var1: txnid, hash });
+  const r = await fetch('https://info.payu.in/merchant/postservice.php?form=2', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body
+  });
   if (!r.ok) return false;
   const data = await r.json();
   const detail = data?.transaction_details?.[txnid];
@@ -37,9 +40,10 @@ async function verifyWithPayU(txnid, key, salt) {
 
 module.exports = async (req, res) => {
   const p = parseBody(req);
-  const key = process.env.PAYU_KEY, salt = process.env.PAYU_SALT;
+  const key = process.env.PAYU_KEY;
+  const salt = process.env.PAYU_SALT;
   if (!key || !salt) return res.status(500).send('Payment server is not configured.');
-  if (p.key !== key || p.status !== 'success' || p.amount !== '7.00' || !p.txnid) return res.status(400).send('Payment could not be verified.');
+  if (p.key !== key || p.status !== 'success' || Number(p.amount) !== 7 || !p.txnid) return res.status(400).send('Payment could not be verified.');
   if (!safeEqual(responseHash(p, salt), p.hash)) return res.status(400).send('Invalid PayU response.');
   try {
     const verified = await verifyWithPayU(p.txnid, key, salt);
