@@ -24,9 +24,12 @@ module.exports = async (req, res) => {
   cors(res);
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ ok: false, message: 'Method not allowed' });
+
   const key = process.env.PAYU_KEY;
   const salt = process.env.PAYU_SALT;
-  if (!key || !salt) return res.status(500).json({ ok: false, message: 'PayU credentials are not configured on the server.' });
+  if (!key || !salt) {
+    return res.status(500).json({ ok: false, message: 'PayU credentials are not configured on the server.' });
+  }
 
   const txnid = `rt${Date.now().toString(36)}${crypto.randomBytes(3).toString('hex')}`.slice(0, 25);
   const p = {
@@ -40,7 +43,6 @@ module.exports = async (req, res) => {
     udf1: '', udf2: '', udf3: '', udf4: '', udf5: '',
     surl: `${API_ORIGIN}/api/payu/success`,
     furl: `${API_ORIGIN}/api/payu/failure`,
-    api_version: '7'
   };
   p.hash = paymentHash(p, salt);
 
