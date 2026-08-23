@@ -50,5 +50,6 @@ module.exports = async (req, res) => {
   }
   const exp = Math.floor(Date.now()/1000) + 15 * 60;
   const token = tokenFor(p.txnid, salt, exp);
-  return res.redirect(303, `https://sahin040703.github.io/?paid=1&token=${encodeURIComponent(token)}`);
+  const base = process.env.APP_BASE_URL || 'https://prankpage-kappa.vercel.app';
+  return res.redirect(303, `${base}/?paid=1&token=${encodeURIComponent(token)}`);
 };
