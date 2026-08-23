@@ -5,6 +5,12 @@ const PAYMENT_URL = process.env.PAYU_TEST_MODE === 'true'
   ? 'https://test.payu.in/_payment'
   : 'https://secure.payu.in/_payment';
 
+function cors(res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+}
+
 function sha512(value) {
   return crypto.createHash('sha512').update(value, 'utf8').digest('hex');
 }
@@ -15,6 +21,8 @@ function paymentHash(p, salt) {
 }
 
 module.exports = async (req, res) => {
+  cors(res);
+  if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ ok: false, message: 'Method not allowed' });
   const key = process.env.PAYU_KEY;
   const salt = process.env.PAYU_SALT;
