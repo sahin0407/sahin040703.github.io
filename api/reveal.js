@@ -4,6 +4,9 @@ function sha512(value) { return crypto.createHash('sha512').update(value, 'utf8'
 function safeEqual(a,b){const aa=Buffer.from(String(a||''));const bb=Buffer.from(String(b||''));return aa.length===bb.length&&crypto.timingSafeEqual(aa,bb)}
 
 module.exports = async (req,res)=>{
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  if (req.method === 'OPTIONS') return res.status(204).end();
   const token = req.query?.token;
   const salt = process.env.PAYU_SALT;
   if(!token || !salt) return res.status(400).json({ok:false});
